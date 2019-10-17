@@ -16,12 +16,41 @@ questions <- mutate(questions, Type = c(rep("Background Info", 9), table1[1, 10:
                                         rep("Frequency of Counselor Duties", 7)))
 
 ## Create table containing background information responses and remove blank 1st row
-infotable <- select(table1, 1:9)
+infotable <- select(table1, 1:9, 30:43)
 infotable <- infotable[-1,]
 
-## Create table containing survey responses to first type of questions
-responsetable1 <- select(table1, 1, 10:43)
-responsetable1 <- responsetable1[-1, ]
+## Create table containing survey responses to Counselor Burnout Inventory questions
+cbi_responses <- select(table1, 1, 10:29)
+cbi_responses <- cbi_responses[-1, ]
 
 ## Replace periods with spaces in questions and column names in tables
 questions$`Survey Question` <- gsub("\\.", " ", questions$`Survey Question`)
+
+## Rename columns in CBI data table
+colnames(cbi_responses) <- c(questions$`Survey Question`[1], questions$Number[10:29])
+
+## Converty CBI Responses to Numeric Scale
+cbi_responses[cbi_responses == "Always True"] <- 5
+cbi_responses[cbi_responses == "Often True"] <- 4
+cbi_responses[cbi_responses == "Sometimes True"] <- 3
+cbi_responses[cbi_responses == "Rarely True"] <- 2
+cbi_responses[cbi_responses == "Never True"] <- 1
+
+## Split CBI data by question factor
+factor_names <- c("Exhaustion", "Incompetence", "Negative Work Environment",
+                  "Devaluing Client", "Deterioration in Personal Life")
+cbi_factor <- as.data.frame(cbind(seq(2, 21), rep(factor_names, 4)))
+colnames(cbi_factor) <- c("CBI_Question", "CBI_Factor")
+cbi_factor$CBI_Question <- as.numeric(as.character(cbi_factor$CBI_Question))
+cbi_exhaustion <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
+                                                   == "Exhaustion",][, 1])
+cbi_incompetence <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
+                                                   == "Incompetence",][, 1])
+cbi_negative <- select(cbi_responses,
+                       cbi_factor[cbi_factor$CBI_Factor
+                                  == "Negative Work Environment",][, 1])
+cbi_devaluing <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
+                                                   == "Devaluing Client",][, 1])
+cbi_personal <- select(cbi_responses,
+                       cbi_factor[cbi_factor$CBI_Factor
+                                  == "Deterioration in Personal Life",][, 1])
