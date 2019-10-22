@@ -30,12 +30,15 @@ questions$`Survey Question` <- gsub("\\.", " ", questions$`Survey Question`)
 ## Rename columns in CBI data table
 colnames(cbi_responses) <- c(questions$`Survey Question`[1], questions$Number[10:29])
 
-## Converty CBI Responses to Numeric Scale
+## Convert CBI Responses to Numeric Scale
 cbi_responses[cbi_responses == "Always True"] <- 5
 cbi_responses[cbi_responses == "Often True"] <- 4
 cbi_responses[cbi_responses == "Sometimes True"] <- 3
 cbi_responses[cbi_responses == "Rarely True"] <- 2
 cbi_responses[cbi_responses == "Never True"] <- 1
+cbi_scale <- data.frame(c(1, 2, 3, 4, 5), c("Always True", "Often True", "Sometimes True",
+                                            "Rarely True", "Never True"))
+colnames(cbi_scale) <- c("Scale Value", "Survey Response")
 
 ## Split CBI data by question factor
 factor_names <- c("Exhaustion", "Incompetence", "Negative Work Environment",
@@ -55,3 +58,13 @@ cbi_devaluing <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor
 cbi_personal <- select(cbi_responses,
                        cbi_factor[cbi_factor$CBI_Factor
                                   == "Deterioration in Personal Life",][, 1])
+
+## Create Excel file as output with different tabs for each data table
+mydatasets <- c("cbi_responses", "cbi_exhaustion", "cbi_devaluing", "cbi_incompetence",
+                "cbi_negative", )
+for (i in seq_along(mydatasets)) {
+    write.xlsx(x = mydatasets[i], 
+               file = "myfile.xlsx", 
+               sheetName = mytitles[i],
+               append = TRUE)
+}
