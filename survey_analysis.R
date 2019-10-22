@@ -1,6 +1,7 @@
 ## Load necessary packages
 library(ggplot2)
 library(tidyverse)
+library(openxlsx)
 
 ## Import raw data from csv files
 table1 <- tbl_df(read.csv("All_Response_Data_09152019.csv", colClasses = "character"))
