@@ -23,6 +23,7 @@ infotable <- infotable[-1,]
 ## Create table containing survey responses to Counselor Burnout Inventory questions
 cbi_responses <- select(table1, 1, 10:29)
 cbi_responses <- cbi_responses[-1, ]
+cbi_questions <- questions[10:29, 1:2]
 
 ## Replace periods with spaces in questions and column names in tables
 questions$`Survey Question` <- gsub("\\.", " ", questions$`Survey Question`)
@@ -36,6 +37,7 @@ cbi_responses[cbi_responses == "Often True"] <- 4
 cbi_responses[cbi_responses == "Sometimes True"] <- 3
 cbi_responses[cbi_responses == "Rarely True"] <- 2
 cbi_responses[cbi_responses == "Never True"] <- 1
+cbi_responses[, 2:21] <- as.numeric(unlist(cbi_responses[, 2:21]))
 cbi_scale <- data.frame(c(1, 2, 3, 4, 5), c("Always True", "Often True", "Sometimes True",
                                             "Rarely True", "Never True"))
 colnames(cbi_scale) <- c("Scale Value", "Survey Response")
@@ -46,25 +48,30 @@ factor_names <- c("Exhaustion", "Incompetence", "Negative Work Environment",
 cbi_factor <- as.data.frame(cbind(seq(2, 21), rep(factor_names, 4)))
 colnames(cbi_factor) <- c("CBI_Question", "CBI_Factor")
 cbi_factor$CBI_Question <- as.numeric(as.character(cbi_factor$CBI_Question))
-cbi_exhaustion <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
-                                                   == "Exhaustion",][, 1])
-cbi_incompetence <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
-                                                   == "Incompetence",][, 1])
-cbi_negative <- select(cbi_responses,
+cbi_exhaustion <- select(cbi_responses, 'Respondent ID',
+                         cbi_factor[cbi_factor$CBI_Factor == "Exhaustion",][, 1])
+cbi_incompetence <- select(cbi_responses, 'Respondent ID',
+                           cbi_factor[cbi_factor$CBI_Factor == "Incompetence",][, 1])
+cbi_negative <- select(cbi_responses, 'Respondent ID',
                        cbi_factor[cbi_factor$CBI_Factor
                                   == "Negative Work Environment",][, 1])
-cbi_devaluing <- select(cbi_responses, cbi_factor[cbi_factor$CBI_Factor 
-                                                   == "Devaluing Client",][, 1])
-cbi_personal <- select(cbi_responses,
+cbi_devaluing <- select(cbi_responses, 'Respondent ID',
+                        cbi_factor[cbi_factor$CBI_Factor == "Devaluing Client",][, 1])
+cbi_personal <- select(cbi_responses, 'Respondent ID',
                        cbi_factor[cbi_factor$CBI_Factor
                                   == "Deterioration in Personal Life",][, 1])
 
 ## Create Excel file as output with different tabs for each data table
-mydatasets <- c("cbi_responses", "cbi_exhaustion", "cbi_devaluing", "cbi_incompetence",
-                "cbi_negative", )
-for (i in seq_along(mydatasets)) {
-    write.xlsx(x = mydatasets[i], 
-               file = "myfile.xlsx", 
-               sheetName = mytitles[i],
-               append = TRUE)
+wb <- createWorkbook()
+cbi_datasets <- list(cbi_responses, cbi_exhaustion, cbi_devaluing, cbi_incompetence,
+                 cbi_negative, cbi_personal, cbi_questions, cbi_scale)
+cbi_titles <- c("cbi_responses", "cbi_exhaustion", "cbi_devaluing", "cbi_incompetence",
+                "cbi_negative", "cbi_personal", "cbi_questions", "cbi_scale")
+for (i in seq_along(cbi_datasets)) {
+    
+    sheet <- addWorksheet(wb, cbi_titles[i])
+    writeDataTable(wb, sheet, data.frame(cbi_datasets[i]))
+ 
 }
+saveWorkbook(wb, "Turner_CBI_Data.xlsx")
+
